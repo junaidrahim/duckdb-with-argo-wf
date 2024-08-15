@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "y"
+version = "0.1.0"
+description = ""
+authors = ["Junaid Rahim <junaidrahim8d@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+duckdb = "^1.0.0"
+ibis-framework = {extras = ["polars"], version = "^9.3.0"}
+pyspark = "^3.5.2"
+memray = "^1.13.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
