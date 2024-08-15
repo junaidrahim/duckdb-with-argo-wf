@@ -9,9 +9,9 @@ spec:
     - name: main
       steps:
         - - name: process-chunk
-            template: hello-world
+            template: process
             withSequence:
-              count: "10"
+              count: "1"
             arguments:
               parameters:
                 - name: chunk-number
@@ -21,22 +21,44 @@ spec:
       inputs:
         parameters:
           - name: chunk-number
+      outputs:
+        artifacts:
+          - name: orders
+            path: /tmp/orders_summary.parquet
+            s3:
+              key: "argo-artifacts/default/duckcon/{{workflow.name}}/{{inputs.parameters.chunk-number}}/orders_summary.parquet"
+            archive:
+              none: {}
+          - name: lineitem
+            path: /tmp/lineitem_summary.parquet
+            s3:
+              key: "argo-artifacts/default/duckcon/{{workflow.name}}/{{inputs.parameters.chunk-number}}/lineitem_summary.parquet"
+            archive:
+              none: {}
+          - name: time
+            path: /tmp/time.txt
+            s3:
+              key: "argo-artifacts/default/duckcon/{{workflow.name}}/{{inputs.parameters.chunk-number}}/time.txt"
+            archive:
+              none: {}
       container:
         image: junaidrahim/duckdb-with-argo:latest
+        imagePullPolicy: Always
         command: [poetry]
         env:
           - name: AWS_ACCESS_KEY_ID
-            value: ""
+            value: "<ACCESS_KEY>"
           - name: AWS_SECRET_ACCESS_KEY
-            value: ""
+            value: "<SECRET_KEY>"
         args: 
           - "run"
+          - "python"
           - "src/main.py"
           - "--chunk-number"
           - "{{inputs.parameters.chunk-number}}"
           - "--data-prefix"
           - "s3://kryptonite-store/datalake/tpch/n=100"
           - "--output-prefix"
-          - "s3://kryptonite-store/datalake/tpch/n=100/results/{{workflow.name}}/{{inputs.parameters.chunk-number}}"
+          - "/tmp"
           - "--engine"
           - "duckdb"

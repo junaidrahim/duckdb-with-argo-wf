@@ -56,7 +56,7 @@ def main(
 
     conn = None
     if engine == "duckdb":
-        conn = ibis.duckdb.connect("/tmp/database.duckdb", temp_directory="/tmp", threads=2, memory_limit="2GB")
+        conn = ibis.duckdb.connect("/tmp/database.duckdb", temp_directory="/tmp", threads=2, memory_limit="2GB", extensions=["httpfs"])
     elif engine == "polars":
         conn = ibis.polars.connect()
     elif engine == "pyspark":
@@ -74,7 +74,7 @@ def main(
     duration = time.time() - start
     print(f"Duration: {duration} seconds")
     
-    with open("time.txt", "w") as f:
+    with open(f"{output_prefix}/time.txt", "w") as f:
         f.write(str(duration))
 
 
