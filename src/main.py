@@ -51,9 +51,6 @@ def main(
     orders_chunk = f"{data_prefix}/orders/{chunk_number:04}.parquet"
     lineitem_chunk = f"{data_prefix}/lineitem/{chunk_number:04}.parquet"
 
-    print(orders_chunk)
-    print(lineitem_chunk)
-
     conn = None
     if engine == "duckdb":
         conn = ibis.duckdb.connect("/tmp/database.duckdb", temp_directory="/tmp", threads=2, memory_limit="2GB", extensions=["httpfs"])
@@ -66,7 +63,10 @@ def main(
 
     start = time.time()
 
+    print(f"Loading {orders_chunk}")
     orders = conn.read_parquet(orders_chunk, "orders")
+    
+    print(f"Loading {lineitem_chunk}")
     lineitem = conn.read_parquet(lineitem_chunk, "lineitem")
 
     process(orders=orders, lineitem=lineitem, output_prefix=output_prefix)
