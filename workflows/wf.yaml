@@ -8,13 +8,35 @@ spec:
   templates:
     - name: main
       steps:
-        - - name: hello-world-x5
+        - - name: process-chunk
             template: hello-world
             withSequence:
               count: "10"
+            arguments:
+              parameters:
+                - name: chunk-number
+                  value: "{{item}}"
 
     - name: process
+      inputs:
+        parameters:
+          - name: chunk-number
       container:
-        image: junaidrahim/duckcon-example:latest
-        command: [cowsay]
-        args: ["hello world!"]
+        image: junaidrahim/duckdb-with-argo:latest
+        command: [poetry]
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            value: ""
+          - name: AWS_SECRET_ACCESS_KEY
+            value: ""
+        args: 
+          - "run"
+          - "src/main.py"
+          - "--chunk-number"
+          - "{{inputs.parameters.chunk-number}}"
+          - "--data-prefix"
+          - "s3://kryptonite-store/datalake/tpch/n=100"
+          - "--output-prefix"
+          - "s3://kryptonite-store/datalake/tpch/n=100/results/{{workflow.name}}/{{inputs.parameters.chunk-number}}"
+          - "--engine"
+          - "duckdb"
