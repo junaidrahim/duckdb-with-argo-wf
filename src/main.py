@@ -67,11 +67,10 @@ def main(
     elif engine == "pyspark":
         spark = (
             SparkSession.builder.config(
-                "spark.jars.packages", "org.apache.spark:spark-hadoop-cloud_2.12:3.3.0"
+                "spark.jars.packages",
+                "org.apache.hadoop:hadoop-aws:2.10.2,org.apache.hadoop:hadoop-client:2.10.2",
             )
-            .config(
-                "spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem"
-            )
+            .config("spark.jars.excludes", "com.google.guava:guava")
             .getOrCreate()
         )
         conn = ibis.pyspark.connect(session=spark)
