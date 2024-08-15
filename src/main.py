@@ -3,6 +3,8 @@ from queries import lineitem_query, orders_query
 import argparse
 from dataclasses import dataclass
 import time
+from pyspark.sql import SparkSession
+
 
 @dataclass
 class Args:
@@ -53,11 +55,26 @@ def main(
 
     conn = None
     if engine == "duckdb":
-        conn = ibis.duckdb.connect("/tmp/database.duckdb", temp_directory="/tmp", threads=2, memory_limit="2GB", extensions=["httpfs"])
+        conn = ibis.duckdb.connect(
+            "/tmp/database.duckdb",
+            temp_directory="/tmp",
+            threads=2,
+            memory_limit="2GB",
+            extensions=["httpfs"],
+        )
     elif engine == "polars":
         conn = ibis.polars.connect()
     elif engine == "pyspark":
-        conn = ibis.pyspark.connect()
+        spark = (
+            SparkSession.builder.config(
+                "spark.jars.packages", "org.apache.spark:spark-hadoop-cloud_2.12:3.3.0"
+            )
+            .config(
+                "spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem"
+            )
+            .getOrCreate()
+        )
+        conn = ibis.pyspark.connect(session=spark)
 
     print(f"Ibis Processing Engine: {ibis.get_backend().name}")
 
@@ -65,15 +82,15 @@ def main(
 
     print(f"Loading {orders_chunk}")
     orders = conn.read_parquet(orders_chunk, "orders")
-    
+
     print(f"Loading {lineitem_chunk}")
     lineitem = conn.read_parquet(lineitem_chunk, "lineitem")
 
     process(orders=orders, lineitem=lineitem, output_prefix=output_prefix)
-        
+
     duration = time.time() - start
     print(f"Duration: {duration} seconds")
-    
+
     with open(f"{output_prefix}/time.txt", "w") as f:
         f.write(str(duration))
 

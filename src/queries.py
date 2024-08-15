@@ -33,4 +33,6 @@ def orders_query(orders: ibis.Table) -> ibis.Table:
         .order_by(["o_orderpriority", "o_orderstatus"])
     )
 
+    print(ibis.to_sql(q_final))
+
     return q_final
